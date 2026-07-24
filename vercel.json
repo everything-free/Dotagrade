@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/skins.js": {
+      "maxDuration": 15
+    }
+  }
+}

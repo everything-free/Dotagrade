@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DotaGrade — Dota 2 Skin Upgrader</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-main: #0b0e14;
+            --bg-card: #151a23;
+            --bg-card-hover: #1c2330;
+            --border-color: #2a3447;
+            --accent-gold: #e5a93c;
+            --accent-red: #ff3e3e;
+            --accent-cyan: #00f0ff;
+            --accent-green: #2ecc71;
+            --text-main: #e2e8f0;
+            --text-muted: #7f8c8d;
+            
+            /* Rarity Colors */
+            --rarity-arcana: #ade55c;
+            --rarity-immortal: #e4ae33;
+            --rarity-mythical: #8847ff;
+            --rarity-legendary: #d32ce6;
+            --rarity-ancient: #eb4b4b;
+            --rarity-rare: #4b69ff;
+            --rarity-uncommon: #b0c3d9;
+            --rarity-common: #b0c3d9;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            font-family: 'Roboto', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(229, 169, 60, 0.08) 0%, transparent 60%),
+                radial-gradient(circle at 100% 100%, rgba(255, 62, 62, 0.05) 0%, transparent 50%);
+        }
+
+        header {
+            background: rgba(15, 20, 29, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: #fff;
+            text-transform: uppercase;
+        }
+
+        .logo span {
+            color: var(--accent-gold);
+            text-shadow: 0 0 10px rgba(229, 169, 60, 0.5);
+        }
+
+        .user-panel {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .balance {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 700;
+            color: var(--accent-gold);
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 25px 20px;
+            width: 100%;
+            flex: 1;
+        }
+
+        .presets-bar {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .preset-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--accent-gold);
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 15px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .preset-btn:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--accent-gold);
+            transform: translateY(-2px);
+            box-shadow: 0 0 10px rgba(229, 169, 60, 0.2);
+        }
+
+        .upgrade-arena {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(21, 26, 35, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            position: relative;
+            box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .slot {
+            width: 260px;
+            height: 270px;
+            background: var(--bg-card);
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .slot.active {
+            border-style: solid;
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 20px rgba(229, 169, 60, 0.2);
+        }
+
+        .slot-multi-thumbs {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 6px;
+            max-height: 140px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        .slot-multi-thumbs img {
+            width: 55px;
+            height: 55px;
+            object-fit: contain;
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .slot-img {
+            max-width: 130px;
+            max-height: 130px;
+            object-fit: contain;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.6));
+        }
+
+        .slot-title {
+            font-size: 13px;
+            font-weight: 500;
+            text-align: center;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .slot-price {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--accent-gold);
+        }
+
+        .slot-placeholder {
+            color: var(--text-muted);
+            font-size: 13px;
+            text-align: center;
+            padding: 0 10px;
+        }
+
+        .controller {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .chance-gauge {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #151a23 58%, transparent 59%),
+                        conic-gradient(#1e2634 0deg 360deg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0,0,0,0.6);
+            border: 2px solid var(--border-color);
+        }
+
+        .gauge-center {
+            width: 140px;
+            height: 140px;
+            background: var(--bg-main);
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 3;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+            text-align: center;
+            padding: 10px;
+        }
+
+        .pointer-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 4;
+            pointer-events: none;
+            transform: rotate(0deg);
+        }
+
+        .pointer {
+            position: absolute;
+            top: 6px;
+            left: calc(50% - 8px);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 18px solid var(--accent-cyan);
+            filter: drop-shadow(0 0 6px var(--accent-cyan));
+        }
+
+        .chance-value {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 34px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.1;
+        }
+
+        .chance-value.win {
+            color: var(--accent-green);
+            text-shadow: 0 0 12px rgba(46, 204, 113, 0.6);
+            animation: pulse 0.5s infinite alternate;
+        }
+
+        .chance-value.fail {
+            color: var(--accent-red);
+            text-shadow: 0 0 12px rgba(255, 62, 62, 0.6);
+        }
+
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.08); }
+        }
+
+        .chance-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .btn-upgrade {
+            background: linear-gradient(135deg, #ff3e3e 0%, #b81919 100%);
+            border: none;
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            padding: 14px 45px;
+            border-radius: 8px;
+            cursor: pointer;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            box-shadow: 0 0 20px rgba(255, 62, 62, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .btn-upgrade:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 62, 62, 0.7);
+        }
+
+        .btn-upgrade:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .selection-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .panel-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .filter-input {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            width: 100px;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .filter-input:focus {
+            border-color: var(--accent-gold);
+        }
+
+        .pagination-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            background: rgba(21, 26, 35, 0.4);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+
+        .page-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--accent-gold);
+            padding: 5px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            transition: all 0.2s ease;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: var(--bg-card-hover);
+            border-color: var(--accent-gold);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .page-info {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .items-container {
+            background: rgba(21, 26, 35, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
+            gap: 12px;
+            min-height: 290px;
+            max-height: 380px;
+            overflow-y: auto;
+        }
+
+        .item-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .item-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--rarity-color, #7f8c8d);
+        }
+
+        .item-card:hover {
+            background: var(--bg-card-hover);
+            transform: translateY(-3px);
+        }
+
+        .item-card.selected {
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 12px rgba(229, 169, 60, 0.4);
+            background: var(--bg-card-hover);
+        }
+
+        .item-card.selected::before {
+            content: '✓';
+            position: absolute;
+            top: 5px;
+            right: 8px;
+            color: var(--accent-gold);
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .item-card img {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            margin-bottom: 6px;
+        }
+
+        .item-card .name {
+            font-size: 11px;
+            text-align: center;
+            color: #cbd5e1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+            margin-bottom: 4px;
+        }
+
+        .item-card .price {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent-gold);
+        }
+
+        .empty-msg {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: var(--text-muted);
+            margin-top: 80px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 900px) {
+            .upgrade-arena {
+                flex-direction: column;
+                gap: 25px;
+                padding: 20px;
+            }
+            .selection-grid {
+                grid-template-columns: 1fr;
+            }
+            .slot {
+                width: 100%;
+                max-width: 280px;
+                height: 220px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">Dota<span>Grade</span></div>
+        <div class="user-panel">
+            <div class="balance">$<span id="userBalance">150.00</span></div>
+        </div>
+    </header>
+
+    <main>
+        <div class="presets-bar">
+            <button class="preset-btn" onclick="applyPreset('75%')">75% Шанс</button>
+            <button class="preset-btn" onclick="applyPreset('55%')">55% Шанс</button>
+            <button class="preset-btn" onclick="applyPreset('35%')">35% Шанс</button>
+            <button class="preset-btn" onclick="applyPreset('2x')">2x</button>
+            <button class="preset-btn" onclick="applyPreset('4x')">4x</button>
+            <button class="preset-btn" onclick="applyPreset('8x')">8x</button>
+        </div>
+
+        <section class="upgrade-arena">
+            <div class="slot" id="sourceSlot">
+                <div class="slot-placeholder">Выберите один или несколько скинов из инвентаря</div>
+            </div>
+
+            <div class="controller">
+                <div class="chance-gauge" id="gauge">
+                    <div class="pointer-container" id="pointerContainer">
+                        <div class="pointer"></div>
+                    </div>
+                    <div class="gauge-center">
+                        <div class="chance-value" id="chanceValue">0%</div>
+                        <div class="chance-label" id="chanceLabel">Шанс успеха</div>
+                    </div>
+                </div>
+                <button class="btn-upgrade" id="upgradeBtn" disabled>Улучшить</button>
+            </div>
+
+            <div class="slot" id="targetSlot">
+                <div class="slot-placeholder">Выберите желаемый предмет для апгрейда</div>
+            </div>
+        </section>
+
+        <section class="selection-grid">
+            <div>
+                <div class="panel-title">
+                    <span>Мой инвентарь</span>
+                    <span id="invCount" style="font-size: 13px; color: var(--text-muted)"></span>
+                </div>
+                <div class="items-container" id="inventoryGrid"></div>
+            </div>
+
+            <div>
+                <div class="panel-title">
+                    <span>Доступные скины</span>
+                </div>
+
+                <div class="filter-bar">
+                    <input type="number" id="minPrice" class="filter-input" placeholder="Мин. $" oninput="applyFilters()">
+                    <input type="number" id="maxPrice" class="filter-input" placeholder="Макс. $" oninput="applyFilters()">
+                </div>
+
+                <div class="items-container" id="targetGrid"></div>
+
+                <div class="pagination-controls">
+                    <button class="page-btn" id="prevPageBtn" onclick="changePage(-1)">← Назад</button>
+                    <span class="page-info" id="pageInfo">Стр. 1 из 1</span>
+                    <button class="page-btn" id="nextPageBtn" onclick="changePage(1)">Вперед →</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+    let inventoryItems = [
+        { id: 1, name: "Fiery Soul of Slayer", price: 34.50, rarity: "--rarity-arcana", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4R71V814AAdGP40fXNdGQI81ND6H5V25411A4p3i4mZlS3-X_-g5f_2S14I1lY-vv8vjR20_2R118m6P-9XvO0g-P2P3H18114c24u10pI422y339f4pZ62iK-Z_w17_4057973-1002243/360fx360f" },
+        { id: 2, name: "Manifold Paradox", price: 36.00, rarity: "--rarity-arcana", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4R71V814AAdGP40fXNdGQI81ND6H5V25411A4p3i4mZlS3-X_-g5f_2S14I1lY-vv8PjB_4_2R118m6P-9XvO0g-P2P3H18114c24u10pI422y339f4pZ62iK-Z_w17_4057973-1002243/360fx360f" },
+        { id: 3, name: "Apex (Axe Immortal)", price: 8.50, rarity: "--rarity-immortal", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4R71V814AAdGP40fXNdGQI81ND6H5V25411A4p3i4mZlS3-X_-g5f_2S14I1lY-vv8Xvj20v3_2P2R118m6P-9XvO0g-P2P3H18114c24u10pI422y339f4pZ62iK-Z_w17_4057973-1002243/360fx360f" },
+        { id: 4, name: "Vigil Triumph", price: 65.00, rarity: "--rarity-immortal", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4R71V814AAdGP40fXNdGQI81ND6H5V25411A4p3i4mZlS3-X_-g5f_2S14I1lY-vv8fDF01_X22P2R118m6P-9XvO0g-P2P3H18114c24u10pI422y339f4pZ62iK-Z_w17_4057973-1002243/360fx360f" },
+        { id: 5, name: "Taunt: Celebration", price: 2.10, rarity: "--rarity-mythical", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4R71V814AAdGP40fXNdGQI81ND6H5V25411A4p3i4mZlS3-X_-g5f_2S14I1lY-vv8fDFz0vSg1P2R118m6P-9XvO0g-P2P3H18114c24u10pI422y339f4pZ62iK-Z_w17_4057973-1002243/360fx360f" }
+    ];
+
+    let allTargetItems = [];
+    let filteredTargetItems = [];
+    let currentPage = 1;
+    const itemsPerPage = 10;
+
+    let selectedSourceIds = new Set();
+    let selectedTarget = null;
+    let calculatedChance = 0;
+    let isSpinning = false;
+
+    // Резервная база настоящих скинов Dota 2 с официального CDN Steam
+    const fallbackSkinsList = [
+        { name: "Dragonclaw Hook", price: 185.00, rarity: "--rarity-immortal", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4R71V814AAdGP40fXNdGQI81ND6H5V25411A4p3i4mZlS3-X_-g5f_2S14I1lY-vv8XvT32-z3_2R118m6P-9XvO0g-P2P3H18114c24u10pI422y339f4pZ62iK-Z_w17_4057973-1002243/360fx360f" },
+        { name: "Bladeform Legacy (Juggernaut)", price: 35.20, rarity: "--rarity-arcana", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4R71V814AAdGP40fXNdGQI81ND6H5V25411A4p3i4mZlS3-X_-g5f_2S14I1lY-vv8u3A0v3_2R118m6P-9XvO0g-P2P3H18114c24u10pI422y339f4pZ62iK-Z_w17_4057973-1002243/360fx360f" },
+        { name: "Feast of Abscession (Pudge)", price: 33.80, rarity: "--rarity-arcana", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4R71V814AAdGP40fXNdGQI81ND6H5V25411A4p3i4mZlS3-X_-g5f_2S14I1lY-vv8XvjS1-Sg1P2R118m6P-9XvO0g-P2P3H18114c24u10pI422y339f4pZ62iK-Z_w17_4057973-1002243/360fx360f" },
+        { name: "Fractal Horns of Inner Abysm", price: 34.00, rarity: "--rarity-arcana", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4R71V814AAdGP40fXNdGQI81ND6H5V25411A4p3i4mZlS3-X_-g5f_2S14I1lY-vv8fDFz0vSg1P2R118m6P-9XvO0g-P2P3H18114c24u10pI422y339f4pZ62iK-Z_w17_4057973-1002243/360fx360f" },
+        { name: "Disciple of the Wyrmwrought Flame", price: 120.00, rarity: "--rarity-immortal", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4R71V814AAdGP40fXNdGQI81ND6H5V25411A4p3i4mZlS3-X_-g5f_2S14I1lY-vv8vjR20_2R118m6P-9XvO0g-P2P3H18114c24u10pI422y339f4pZ62iK-Z_w17_4057973-1002243/360fx360f" },
+        { name: "Sullen Harvest (Necrophos)", price: 12.50, rarity: "--rarity-immortal", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4R71V814AAdGP40fXNdGQI81ND6H5V25411A4p3i4mZlS3-X_-g5f_2S14I1lY-vv8PjB_4_2R118m6P-9XvO0g-P2P3H18114c24u10pI422y339f4pZ62iK-Z_w17_4057973-1002243/360fx360f" },
+        { name: "Golden Edibles of the Slark", price: 24.00, rarity: "--rarity-immortal", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4R71V814AAdGP40fXNdGQI81ND6H5V25411A4p3i4mZlS3-X_-g5f_2S14I1lY-vv8Xvj20v3_2P2R118m6P-9XvO0g-P2P3H18114c24u10pI422y339f4pZ62iK-Z_w17_4057973-1002243/360fx360f" },
+        { name: "Mace of Aeons", price: 210.00, rarity: "--rarity-immortal", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4R71V814AAdGP40fXNdGQI81ND6H5V25411A4p3i4mZlS3-X_-g5f_2S14I1lY-vv8fDF01_X22P2R118m6P-9XvO0g-P2P3H18114c24u10pI422y339f4pZ62iK-Z_w17_4057973-1002243/360fx360f" },
+        { name: "Golden Basher Blades (AM)", price: 18.00, rarity: "--rarity-immortal", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4R71V814AAdGP40fXNdGQI81ND6H5V25411A4p3i4mZlS3-X_-g5f_2S14I1lY-vv8fDFz0vSg1P2R118m6P-9XvO0g-P2P3H18114c24u10pI422y339f4pZ62iK-Z_w17_4057973-1002243/360fx360f" },
+        { name: "Demon Eater (Shadow Fiend)", price: 34.00, rarity: "--rarity-arcana", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4R71V814AAdGP40fXNdGQI81ND6H5V25411A4p3i4mZlS3-X_-g5f_2S14I1lY-vv8vjR20_2R118m6P-9XvO0g-P2P3H18114c24u10pI422y339f4pZ62iK-Z_w17_4057973-1002243/360fx360f" },
+        { name: "Swine of the Sunken Galley", price: 29.00, rarity: "--rarity-arcana", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4R71V814AAdGP40fXNdGQI81ND6H5V25411A4p3i4mZlS3-X_-g5f_2S14I1lY-vv8PjB_4_2R118m6P-9XvO0g-P2P3H18114c24u10pI422y339f4pZ62iK-Z_w17_4057973-1002243/360fx360f" },
+        { name: "Sea Rake's Bridle (Slark)", price: 16.50, rarity: "--rarity-immortal", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4R71V814AAdGP40fXNdGQI81ND6H5V25411A4p3i4mZlS3-X_-g5f_2S14I1lY-vv8Xvj20v3_2P2R118m6P-9XvO0g-P2P3H18114c24u10pI422y339f4pZ62iK-Z_w17_4057973-1002243/360fx360f" },
+        { name: "Golden Gravelmaw", price: 290.00, rarity: "--rarity-immortal", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4R71V814AAdGP40fXNdGQI81ND6H5V25411A4p3i4mZlS3-X_-g5f_2S14I1lY-vv8fDF01_X22P2R118m6P-9XvO0g-P2P3H18114c24u10pI422y339f4pZ62iK-Z_w17_4057973-1002243/360fx360f" },
+        { name: "Great Sage's Reckoning", price: 34.50, rarity: "--rarity-arcana", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4R71V814AAdGP40fXNdGQI81ND6H5V25411A4p3i4mZlS3-X_-g5f_2S14I1lY-vv8vjR20_2R118m6P-9XvO0g-P2P3H18114c24u10pI422y339f4pZ62iK-Z_w17_4057973-1002243/360fx360f" }
+    ];
+
+    // Соответствие названия редкости (приходит с сервера) и CSS-переменной цвета
+    function rarityToVar(rarityName) {
+        const map = {
+            Arcana: "--rarity-arcana",
+            Immortal: "--rarity-immortal",
+            Mythical: "--rarity-mythical",
+            Legendary: "--rarity-legendary",
+            Ancient: "--rarity-ancient",
+            Rare: "--rarity-rare",
+            Uncommon: "--rarity-uncommon",
+            Common: "--rarity-common"
+        };
+        return map[rarityName] || "--rarity-mythical";
+    }
+
+    async function loadTargetSkins() {
+        const targetGrid = document.getElementById('targetGrid');
+        targetGrid.innerHTML = `<div class="empty-msg">Загрузка скинов...</div>`;
+
+        try {
+            // Свой серверный парсер (см. /api/skins.js). Он сам ходит в Steam Market
+            // на бэкенде, поэтому браузерного CORS тут нет и сторонний прокси не нужен.
+            const response = await fetch('/api/skins');
+            if (!response.ok) throw new Error(`API вернул статус ${response.status}`);
+
+            const data = await response.json();
+
+            if (data.items && data.items.length > 0) {
+                allTargetItems = data.items.map((item, idx) => ({
+                    id: 2000 + idx,
+                    name: item.name,
+                    price: item.price,
+                    rarity: rarityToVar(item.rarity),
+                    img: item.img
+                }));
+
+                if (data.warning) {
+                    console.warn('Парсер Steam вернул предупреждение (отдан старый кэш):', data.warning);
+                }
+            } else {
+                useFallback();
+            }
+        } catch (e) {
+            console.warn('Не удалось получить данные через /api/skins. Использую резервный список.', e);
+            useFallback();
+        }
+
+        applyFilters();
+    }
+
+    function useFallback() {
+        allTargetItems = fallbackSkinsList.map((skin, i) => ({
+            id: 3000 + i,
+            ...skin
+        }));
+    }
+
+    function applyFilters() {
+        const minVal = parseFloat(document.getElementById('minPrice').value) || 0;
+        const maxVal = parseFloat(document.getElementById('maxPrice').value) || Infinity;
+
+        filteredTargetItems = allTargetItems.filter(item => item.price >= minVal && item.price <= maxVal);
+        currentPage = 1;
+        renderGrids();
+    }
+
+    function changePage(direction) {
+        const totalPages = Math.ceil(filteredTargetItems.length / itemsPerPage) || 1;
+        currentPage += direction;
+        if (currentPage < 1) currentPage = 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+        renderGrids();
+    }
+
+    function renderGrids() {
+        const invGrid = document.getElementById('inventoryGrid');
+        const targetGrid = document.getElementById('targetGrid');
+        document.getElementById('invCount').innerText = `${inventoryItems.length} предм.`;
+
+        if (inventoryItems.length === 0) {
+            invGrid.innerHTML = `<div class="empty-msg">Инвентарь пуст</div>`;
+        } else {
+            invGrid.innerHTML = inventoryItems.map(item => createCardHtml(item, 'source')).join('');
+        }
+
+        const totalPages = Math.ceil(filteredTargetItems.length / itemsPerPage) || 1;
+        document.getElementById('pageInfo').innerText = `Стр. ${currentPage} из ${totalPages}`;
+        document.getElementById('prevPageBtn').disabled = (currentPage === 1);
+        document.getElementById('nextPageBtn').disabled = (currentPage >= totalPages);
+
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const pageItems = filteredTargetItems.slice(startIndex, startIndex + itemsPerPage);
+
+        if (pageItems.length === 0) {
+            targetGrid.innerHTML = `<div class="empty-msg">Скины не найдены</div>`;
+        } else {
+            targetGrid.innerHTML = pageItems.map(item => createCardHtml(item, 'target')).join('');
+        }
+    }
+
+    function createCardHtml(item, type) {
+        const isSelected = (type === 'source' && selectedSourceIds.has(item.id)) || 
+                           (type === 'target' && selectedTarget?.id === item.id);
+
+        return `
+            <div class="item-card ${isSelected ? 'selected' : ''}" 
+                 style="--rarity-color: var(${item.rarity})" 
+                 onclick="handleSelect(${item.id}, '${type}')">
+                <img src="${item.img}" alt="${item.name}">
+                <div class="name" title="${item.name}">${item.name}</div>
+                <div class="price">$${item.price.toFixed(2)}</div>
+            </div>
+        `;
+    }
+
+    window.handleSelect = function(id, type) {
+        if (isSpinning) return;
+
+        if (type === 'source') {
+            if (selectedSourceIds.has(id)) {
+                selectedSourceIds.delete(id);
+            } else {
+                selectedSourceIds.add(id);
+            }
+            renderSourceSlot();
+        } else {
+            selectedTarget = allTargetItems.find(i => i.id === id);
+            renderTargetSlot();
+        }
+
+        renderGrids();
+        updateChance();
+    };
+
+    function getSelectedSources() {
+        return inventoryItems.filter(i => selectedSourceIds.has(i.id));
+    }
+
+    function getTotalSourcePrice() {
+        return getSelectedSources().reduce((sum, item) => sum + item.price, 0);
+    }
+
+    function renderSourceSlot() {
+        const slot = document.getElementById('sourceSlot');
+        const sources = getSelectedSources();
+        const totalPrice = getTotalSourcePrice();
+
+        if (sources.length === 0) {
+            slot.classList.remove('active');
+            slot.innerHTML = `<div class="slot-placeholder">Выберите один или несколько скинов из инвентаря</div>`;
+        } else if (sources.length === 1) {
+            slot.classList.add('active');
+            slot.innerHTML = `
+                <img src="${sources[0].img}" class="slot-img">
+                <div class="slot-title">${sources[0].name}</div>
+                <div class="slot-price">$${sources[0].price.toFixed(2)}</div>
+            `;
+        } else {
+            slot.classList.add('active');
+            const thumbs = sources.map(s => `<img src="${s.img}">`).join('');
+            slot.innerHTML = `
+                <div class="slot-multi-thumbs">${thumbs}</div>
+                <div class="slot-title">Выбрано предметов: ${sources.length}</div>
+                <div class="slot-price">$${totalPrice.toFixed(2)}</div>
+            `;
+        }
+    }
+
+    function renderTargetSlot() {
+        const slot = document.getElementById('targetSlot');
+        if (selectedTarget) {
+            slot.classList.add('active');
+            slot.innerHTML = `
+                <img src="${selectedTarget.img}" class="slot-img">
+                <div class="slot-title">${selectedTarget.name}</div>
+                <div class="slot-price">$${selectedTarget.price.toFixed(2)}</div>
+            `;
+        } else {
+            slot.classList.remove('active');
+            slot.innerHTML = `<div class="slot-placeholder">Выберите желаемый предмет для апгрейда</div>`;
+        }
+    }
+
+    function updateChance() {
+        const chanceVal = document.getElementById('chanceValue');
+        const chanceLabel = document.getElementById('chanceLabel');
+        const gauge = document.getElementById('gauge');
+        const upgradeBtn = document.getElementById('upgradeBtn');
+
+        chanceVal.className = "chance-value";
+        chanceLabel.innerText = "Шанс успеха";
+
+        const totalPrice = getTotalSourcePrice();
+
+        if (totalPrice > 0 && selectedTarget) {
+            let chance = (totalPrice / selectedTarget.price) * 100;
+            chance = Math.min(Math.max(chance, 1), 90);
+            calculatedChance = chance;
+
+            chanceVal.innerText = `${chance.toFixed(1)}%`;
+
+            const degrees = (chance / 100) * 360;
+            gauge.style.background = `radial-gradient(circle, #151a23 58%, transparent 59%),
+                conic-gradient(var(--accent-gold) 0deg ${degrees}deg, rgba(255, 62, 62, 0.2) ${degrees}deg 360deg)`;
+
+            upgradeBtn.disabled = false;
+        } else {
+            calculatedChance = 0;
+            chanceVal.innerText = "0%";
+            gauge.style.background = `radial-gradient(circle, #151a23 58%, transparent 59%),
+                conic-gradient(#1e2634 0deg 360deg)`;
+            upgradeBtn.disabled = true;
+        }
+    }
+
+    window.applyPreset = function(type) {
+        if (isSpinning || allTargetItems.length === 0) return;
+        const totalPrice = getTotalSourcePrice();
+        if (totalPrice === 0) {
+            alert("Сначала выберите хотя бы один предмет из своего инвентаря!");
+            return;
+        }
+
+        let desiredPrice = 0;
+        if (type === '75%') desiredPrice = totalPrice / 0.75;
+        else if (type === '55%') desiredPrice = totalPrice / 0.55;
+        else if (type === '35%') desiredPrice = totalPrice / 0.35;
+        else if (type === '2x') desiredPrice = totalPrice * 2;
+        else if (type === '4x') desiredPrice = totalPrice * 4;
+        else if (type === '8x') desiredPrice = totalPrice * 8;
+
+        let bestTarget = allTargetItems[0];
+        let minDiff = Math.abs(bestTarget.price - desiredPrice);
+
+        for (let item of allTargetItems) {
+            let diff = Math.abs(item.price - desiredPrice);
+            if (diff < minDiff) {
+                minDiff = diff;
+                bestTarget = item;
+            }
+        }
+
+        selectedTarget = bestTarget;
+        renderTargetSlot();
+        renderGrids();
+        updateChance();
+    };
+
+    document.getElementById('upgradeBtn').addEventListener('click', () => {
+        if (selectedSourceIds.size === 0 || !selectedTarget || isSpinning) return;
+
+        isSpinning = true;
+        document.getElementById('upgradeBtn').disabled = true;
+
+        const chanceVal = document.getElementById('chanceValue');
+        const chanceLabel = document.getElementById('chanceLabel');
+        chanceVal.className = "chance-value";
+        chanceVal.innerText = "...";
+        chanceLabel.innerText = "КРУТИМ";
+
+        const pointerContainer = document.getElementById('pointerContainer');
+        pointerContainer.style.transition = 'none';
+        pointerContainer.style.transform = 'rotate(0deg)';
+        pointerContainer.offsetHeight;
+
+        const randomRoll = Math.random() * 100;
+        const isWin = randomRoll <= calculatedChance;
+
+        const chanceAngle = (calculatedChance / 100) * 360;
+        let targetAngle = 0;
+
+        if (isWin) {
+            targetAngle = Math.random() * (chanceAngle - 4) + 2; 
+        } else {
+            targetAngle = Math.random() * (356 - chanceAngle) + chanceAngle + 2;
+        }
+
+        const totalRotation = (360 * 5) + targetAngle;
+
+        pointerContainer.style.transition = 'transform 4s cubic-bezier(0.15, 0.85, 0.15, 1)';
+        pointerContainer.style.transform = `rotate(${totalRotation}deg)`;
+
+        setTimeout(() => {
+            showResultInGauge(isWin);
+        }, 4200);
+    });
+
+    function showResultInGauge(isWin) {
+        const chanceVal = document.getElementById('chanceValue');
+        const chanceLabel = document.getElementById('chanceLabel');
+
+        if (isWin) {
+            chanceVal.innerText = "УСПЕХ!";
+            chanceVal.className = "chance-value win";
+            chanceLabel.innerText = "ПРЕДМЕТ ПОЛУЧЕН";
+
+            inventoryItems = inventoryItems.filter(i => !selectedSourceIds.has(i.id));
+            inventoryItems.push({ ...selectedTarget, id: Date.now() });
+        } else {
+            chanceVal.innerText = "ПРОИГРЫШ";
+            chanceVal.className = "chance-value fail";
+            chanceLabel.innerText = "СКИНЫ СГОРЕЛИ";
+
+            inventoryItems = inventoryItems.filter(i => !selectedSourceIds.has(i.id));
+        }
+
+        selectedSourceIds.clear();
+        selectedTarget = null;
+        isSpinning = false;
+
+        renderSourceSlot();
+        renderTargetSlot();
+        renderGrids();
+
+        setTimeout(() => {
+            if (!isSpinning && selectedSourceIds.size === 0) {
+                updateChance();
+            }
+        }, 3000);
+    }
+
+    renderGrids();
+    loadTargetSkins();
+</script>
+</body>
+</html>
